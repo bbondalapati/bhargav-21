@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Retail Stores</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src='//www.aa.com/jquery.js'></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap" rel="stylesheet">
+    <script src="fuzzyset.js"></script>
+
+    <style>
+      #voice-input-btn {
+        background-color: aqua;
+        border: none;
+        color: white;
+        padding: 16px 22px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 50%;
+      }
+
+      #answer-box {
+        border: 1px solid black;
+        padding: 10px;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Hello Customers, How can I help you?</h1>
+    <div id="answer"></div>
+    <button id="voice-input-btn"><i class="fa fa-microphone"></i></button>
+    <input type="text" id="text-input" placeholder="Type your question...">
+    <button id="submit-btn">Submit</button>
+    <!-- <div id="answer-box"></div> -->
+  </div>
+
+    <script>
+      
+      var isClose=true;
+        const stopwords = ["of", "the", "a", "an", "any", "is", "can", "who", "what", "why", "whom"];
+        var editor = "sorts\n" +
+            " #types = {veggies,appliances,meat,clothes,dailycare,medicines}.\n"+
+    "#veggies={carrot,tomato,peppers}.\n"+
+    "#appliances={refrigerator,oven,mobile}.\n"+
+    "#meat={beef,pork,lamb}.\n"+
+    "#clothes={tshirt,hoodie,jeans}.\n"+
+    "#dailycare={toothpaste,shampoo,soap}.\n"+
+    "#medicines={tylenol,advil,ibuprofen}. \n"+
+    "#availability={available,unavailable}.\n"+
+   "#price={2,3,5,10,20,30,40,50,60,70,200,400,600,800}.\n"+
+    "#location={aislea1,aislea2,aisleb1,aisleb2,aislec1,aislec2}.\n"+
+    "#delivery={shipping,instore,instore_and_ship}.\n"+
+      
+            "predicates\n" +
+            "items(#types). \n"+
+    "veggies(#veggies). \n"+
+    "appliances(#appliances). \n"+
+    "meat(#meat). \n"+
+    "clothes(#clothes). \n"+
+    "dailycare(#dailycare). \n"+
+    "delivery(#delivery). \n"+
+    "medicines(#medicines). \n" +
+   "pricev(#price,#veggies). \n"+
+    "pricea(#price,#appliances). \n"+
+    "pricem(#price,#meat). \n"+
+    "pricec(#price,#clothes). \n"+
+    "priced(#price,#dailycare). \n"+
+    "pricemd(#price,#medicines). \n" +
+    "instockv(#availability,#veggies). \n"+
+    "instocka(#availability,#appliances). \n"+
+    "instockm(#availability,#meat). \n"+
+    "instockc(#availability,#clothes). \n"+
+    "instockd(#availability,#dailycare). \n"+
+    "instockmd(#availability,#medicines). \n" +
+    "placev(#location,#veggies). \n"+
+    "placea(#location,#appliances). \n"+
+    "placem(#location,#meat). \n"+
+    "placec(#location,#clothes). \n"+
+    "placed(#location,#dailycare). \n"+
+    "placemd(#location,#medicines). \n" +
+    "deliveryv(#delivery,#veggies). \n" +
+    "deliverya(#delivery,#appliances). \n" +
+    "deliverym(#delivery,#meat). \n" +
+    "deliveryc(#delivery,#clothes). \n" +
+    "deliveryd(#delivery,#dailycare). \n" +
+    "deliverymd(#delivery,#medicines). \n" +
+      
+            "rules\n" +
+           "items(veggies). \n"+
+    "items(appliances). \n"+
+    "items(meat). \n"+
+    "items(clothes). \n"+
+    "items(dailycare). \n"+
+    "items(medicines). \n"+
+    "veggies(tomato). \n"+
+    "veggies(carrot). \n"+
+    "veggies(peppers). \n"+
+    "appliances(refrigerator). \n"+
+    "appliances(oven). \n"+
+    "appliances(mobile). \n"+
+    "meat(beef). \n"+
+    "meat(pork). \n"+
+    "meat(lamb). \n"+
+    "clothes(tshirt). \n"+
+    "clothes(hoodie). \n"+
+    "clothes(jeans). \n"+
+   "dailycare(toothpaste). \n"+
+    "dailycare(shampoo). \n"+
+    "dailycare(soap). \n"+
+    "medicines(tylenol). \n"+
+    "medicines(advil). \n"+
+    "medicines(ibuprofen). \n"+
+    "delivery(shipping). \n"+
+    "delivery(instore). \n"+
+    "delivery(instore_and_ship). \n"+
+    "instockv(available,tomato). \n"+
+    "instockv(unavailable,carrot). \n"+
+    "instockv(available,peppers). \n"+
+    "instocka(available,refrigerator). \n"+
+    "instocka(unavailable,oven). \n"+
+    "instocka(available,mobile). \n"+
+    "instockm(available,beef). \n"+
+   " instockm(available,pork). \n"+
+    "instockm(unavailable,lamb). \n"+
+   " instockc(unavailable,tshirt). \n"+
+    "instockc(available,hoodie). \n"+
+   " instockc(available,jeans). \n"+
+    "instockd(available,toothpaste). \n"+
+    "instockd(available,shampoo). \n"+
+    "instockd(unavailable,soap). \n"+
+    "instockmd(available,tylenol). \n"+
+    "instockmd(available,advil). \n"+
+    "instockmd(unavailable,ibuprofen). \n"+
+    "placev(aislea1,tomato). \n"+
+   " placev(aislea1,carrot). \n"+
+    "placev(aislea1,peppers). \n"+
+   " placea(aislea2,refrigerator). \n"+
+    "placea(aislea2,oven). \n"+
+    "placea(aislea2,mobile). \n"+
+    "placem(aisleb1,beef). \n"+
+    "placem(aisleb1,pork). \n"+
+    "placem(aisleb1,lamb). \n"+
+    "placec(aisleb2,tshirt). \n"+
+    "placec(aisleb2,hoodie). \n"+
+    "placec(aisleb2,jeans). \n"+
+    "placed(aislec1,toothpaste). \n"+
+    "placed(aislec1,shampoo). \n"+
+    "placed(aislec1,soap). \n"+
+    "placemd(aislec2,tylenol). \n"+
+    "placemd(aislec2,advil). \n"+
+   "placemd(aislec2,ibuprofen). \n"+
+    "pricev(10,carrot). \n"+
+    "pricev(10,tomato). \n"+
+    "pricev(10,peppers). \n"+
+    "pricea(600,refrigerator). \n"+
+    "pricea(200,oven). \n"+
+    "pricea(800,mobile). \n"+
+    "pricem(30,beef). \n"+
+    "pricem(40,pork). \n"+
+    "pricem(50,lamb). \n"+
+    "pricec(20,tshirt). \n"+
+    "pricec(30,hoodie). \n"+
+    "pricec(30,jeans). \n"+
+    "priced(10,toothpaste). \n"+
+    "priced(10,shampoo). \n"+
+    "priced(10,soap). \n"+
+    "pricemd(2,tylenol). \n"+
+    "pricemd(3,advil). \n"+
+    "pricemd(5,ibuprofen). \n"+
+    
+    "deliveryv(instore,carrot). \n"+
+    "deliveryv(instore,tomato). \n"+
+    "deliveryv(instore,peppers). \n"+
+    "deliverya(instore_and_ship,oven). \n"+
+    "deliverya(instore_and_ship,refrigerator). \n"+
+    "deliverya(instore_and_ship,mobile). \n"+
+    "deliverym(instore,beef). \n"+
+    "deliverym(instore,pork). \n"+
+    "deliverym(instore,lamb). \n"+
+    "deliveryc(shipping,tshirt). \n"+
+    "deliveryc(shipping,hoodie). \n"+
+    "deliveryc(shipping,jeans). \n"+
+   " deliveryd(shipping,toothpaste). \n"+
+    "deliveryd(shipping,shampoo). \n"+
+    "deliveryd(shipping,soap). \n"+
+    "deliverymd(instore,tylenol). \n"+
+   " deliverymd(instore,advil). \n"+
+    "deliverymd(instore,ibuprofen).";
+    
+    
+    
+        // sorts
+        var contstring = editor.split("sorts\n")[1].split("predicates\n");
+        var sortstring = contstring[0].split('.');
+        sortstring.splice(-1, 1);
+        var sorts = {};
+        sortstring = sortstring.map(d => d.replace(/\n/g, '').trim()).forEach(d => {
+            var par = d.split("=");
+            sorts[par[0].replace(/#/, '').trim()] = par[1].replace(/{|}/g, '').split(',').map(w => w.trim())
+        });
+        // predicates
+        var predicates = {};
+        contstring = contstring[1].split("rules\n");
+        sortstring = contstring[0].split('.');
+        sortstring.splice(-1, 1);
+        sortstring.forEach(d => {
+            var part = d.replace(/\n/g, '').trim().split('(');
+            var func = part[0];
+            predicates[func] = {};
+            var par = part[1].split(',').map(e => e.replace(/#|\)/g, '').trim());
+            var par1 = sorts[par[0]].slice();
+            par1.push("X");
+            par.splice(0, 1);
+            par1.forEach(e => {
+                var strinh = (e == 'X' ? '' : (e + ' ')) + func;
+                predicates[func][strinh] = func + "(" + e + ")";
+                par.forEach(par2 => {
+                    var temp = sorts[par2].slice();
+                    temp.push("X");
+                    temp.forEach(t => {
+                        var strinh = (e == 'X' ? '' : (e + ' ')) + func + (t == 'X' ? '' : (' ' + t));
+                        // if (strinh != fubnc)
+                        predicates[func][strinh] = func + "(" + e + "," + t + ")";
+                    })
+                });
+            });
+        });
+
+
+        var all_predicates = [];
+        for (var key1 in predicates) {
+            if (predicates.hasOwnProperty(key1)) {
+                for (var key2 in predicates[key1]) {
+                    if (predicates[key1].hasOwnProperty(key2))
+                        all_predicates.push(key2);
+                }
+            }
+
+        }
+        all_predicates.push('speak spanish'); // extra terms
+        a = FuzzySet(all_predicates);
+      
+      console.log(all_predicates)
+      
+      
+      // Speech recognition API
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+
+      // Get DOM elements
+      const answerDiv = document.querySelector('#answer');
+      const voiceBtn = document.getElementById('voice-input-btn');
+      const textInput = document.getElementById('text-input');
+      const submitBtn = document.getElementById('submit-btn');
+      const answerBox = document.getElementById('answer-box');
+
+      submitBtn.addEventListener('click', () => {
+        const question = textInput.value;
+        if (question.trim() === '') {
+          answerBox.innerHTML = 'Please ask a question.';
+          return;
+        }
+        var trim_script = question.split(" ");
+        trim_script = trim_script.filter(f => !stopwords.includes(f));
+        var queryQues = a.get(trim_script.join(" "), null, 0.5); 
+        getAnswer(queryQues);
+        
+      });
+
+      // Handle speech recognition
+      recognition.onresult = event => {
+        const resultIndex = event.resultIndex;
+        const transcript = event.results[resultIndex][0].transcript;
+        textInput.value = transcript;
+        
+        var trim_script = transcript.split(" ");
+        trim_script = trim_script.filter(f => !stopwords.includes(f));
+        var queryQues = a.get(trim_script.join(" "), null, 0.5);
+        console.log(queryQues);
+        getAnswer(queryQues);
+      };
+
+      // Handle click on voice input button     
+      function startSpeechRecognition() {
+        recognition.start();
+      }
+      voiceBtn.addEventListener('click', startSpeechRecognition);
+
+
+      function getAnswer(question) {
+        
+        if (question!=null) {
+                var mainkey = question[0][1].replace('speak ','');
+                var answerarr = mainkey.split(' ');
+                var key1 = '';
+                answerarr.forEach(d => {
+                    key1 = (predicates[d] != undefined) ? d : key1;
+                });
+                //var key1 = answerarr.length>2? answerarr[1]:answerarr[0];
+                var key2 = mainkey;
+                console.log(key1 +'-'+ key2);
+                console.log(predicates[key1][key2]);
+                
+                var data = {
+                    'action': "getQuery",
+                    'query': predicates[key1][key2],
+                    'editor': editor
+                };
+          
+          console.log(data)
+          
+          
+          
+          $.ajax({
+          url: "https://cors-anywhere.herokuapp.com/http://wave.ttu.edu/ajax.php",
+          type: "POST",
+          headers: {
+            "X-Requested-With": "XMLHttpRequest"
+          },
+          data: {
+            action: "getQuery",
+            query: predicates[key1][key2],
+            editor: editor
+          },
+          success: function(response) {
+            console.log(response);
+             const answer = response || 'Sorry, I could not find an answer.';
+             answerDiv.innerHTML = answer;
+             answerBox.innerHTML = answer;
+          },
+          error: function(xhr, status, error) {
+            console.log("error: " + error);
+          }
+        });
+
+
+
+          
+          //$.post("http://localhost/ajax.php", { url: "http://wave.ttu.edu/" , data:data}, function (response) {
+                // Expected response : answer sets
+                //$.post("http://localhost/ajax/ajax.js",  function (response) {
+                //$.post("http://localhost/ajaxtest.php", function (response) {  
+                 // $.post("https://cors-anywhere.herokuapp.com/http://wave.ttu.edu/", data, function (response) {
+                  
+                   // console.log(response);
+                  
+                  
+                   // var html = document.createElement("html");
+                   // html.innerHTML = response;
+                    // contentRan
+                   // var answerstring = html.querySelector("p").textContent.replace(/X =/gm, "");
+                  //  var answerarr = answerstring.split("\n");
+                  //  answerarr.splice(-1,1);
+                 //   console.log(answerarr);
+                 //   var pre_string = "The answer to your question " + transcript + " is ";
+                 //   answerstring = contentRan.answer[answerarr[0].toLowerCase().trim()]==undefined?
+                 //       (pre_string + (answerarr.length==1?answerstring:(answerarr.splice(-1, 0, "and"),answerarr.join())))
+                 //       : generaspeak(contentRan.answer[answerarr[0].toLowerCase().trim()]);
+                //    console.log(answerstring);
+                  
+                //   const answer = answerstring || 'Sorry, I could not find an answer.';
+               //   answerDiv.innerHTML = answer;
+               //   answerBox.innerHTML = answer;
+               //   console.log(answer);
+                    
+               // });
+            }
+        }
+        
+ 
+
+    </script>
+  </body>
+</html>
